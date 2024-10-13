@@ -1,17 +1,30 @@
+import os
 from hashlib import sha256
 
+from dotenv import load_dotenv
 from sqlmodel import Session, SQLModel, create_engine, select
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from models.user import Login, User
+
+load_dotenv()
 
 app = FastAPI()
 
-DATABASE_URL = "postgresql://boinho_3cgu_user:rqABTPCpbl1orYDSLK3J0wWmG5cF86o2@dpg-cs5cif08fa8c73akcqo0-a.oregon-postgres.render.com/boinho_3cgu"
+DATABASE_URL = os.getenv("DATABASE_URL")
 
 engine = create_engine(DATABASE_URL)
 
 SQLModel.metadata.create_all(engine)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Permite todas as origens
+    allow_credentials=True,
+    allow_methods=["*"],  # Permite todos os métodos
+    allow_headers=["*"],  # Permite todos os cabeçalhos
+)
 
 
 @app.get("/")
@@ -20,7 +33,7 @@ def root():
 
 
 @app.post("/register")
-def post_user(user: User):
+def register(user: User):
     if len(user.password) < 10:
         return {"error": "The password must be at least 10 characters long"}
 
@@ -37,7 +50,7 @@ def post_user(user: User):
 @app.post("/login")
 def login(login: Login):
     with Session(engine) as session:
-        query = select(User).where(User.username == login.username)
+        query = select(User).where(User.email == login.email)
         user = session.exec(query).first()
 
         if not user:

@@ -13,5 +13,5 @@ class User(SQLModel, table=True):
 
 
 class Login(BaseModel):
-    username: str
+    email: str
     password: str
