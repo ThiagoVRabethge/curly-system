@@ -16,7 +16,7 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 
 engine = create_engine(DATABASE_URL)
 
-SQLModel.metadata.create_all(engine)
+# SQLModel.metadata.create_all(engine)
 
 app.add_middleware(
     CORSMiddleware,
@@ -25,6 +25,11 @@ app.add_middleware(
     allow_methods=["*"],  # Permite todos os métodos
     allow_headers=["*"],  # Permite todos os cabeçalhos
 )
+
+
+@app.on_event("startup")
+def startup_event():
+    SQLModel.metadata.create_all(engine)
 
 
 @app.get("/")
@@ -62,9 +67,3 @@ def login(login: Login):
             return {"error": "Incorrect password"}
 
     return {"message": "Login successful", "user": user.to_dict()}
-
-
-# if __name__ == "__main__":
-#     import uvicorn
-
-#     uvicorn.run("main:app")
